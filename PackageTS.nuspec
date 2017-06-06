@@ -6,6 +6,7 @@
         <authors>Xomega Team</authors>
         <owners>Xomega.Net</owners>
         <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+        <projectUrl>https://github.com/Xomega-Net/XomegaJS.Controls</projectUrl>
         <iconUrl>https://avatars2.githubusercontent.com/u/17077373</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Type definitions for Xomega JavaScript controls.</description>
