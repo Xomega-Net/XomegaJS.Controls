@@ -24,14 +24,8 @@ xomegaControls._modalViewPopup = function (action, viewID, uplContainerID, neste
 
     var targetID = uplContainerID ? uplContainerID : viewID;
 
+    let target = typeof targetID == 'string' ? $('#' + targetID) : $(targetID);
     if (action === 'show') {
-        let target = $('#' + targetID);
-
-        // close via view's button to fire a close event
-        target.on('dialogclose', function () {
-            target.find('.btn-close').click();
-        });
-
         // workaround for a jQuery UI bug with calculating z-index
         // manifested by our moving the dialong inside the form element
         $.widget("ui.dialog", $.ui.dialog, {
@@ -59,8 +53,8 @@ xomegaControls._modalViewPopup = function (action, viewID, uplContainerID, neste
         dlg.appendTo('form:first'); // move inside the form element to handle postbacks
     }
     else if (action === 'hide') {
-        let target = $('.ui-dialog > #' + targetID);
         if (nestedInUpdatePanel) {
+            target = $('.ui-dialog > #' + targetID);
             // destroy, the parent panel will need to update and recreate the view
             target.dialog('destroy').remove();
         } else target.dialog('close'); // don't destroy, or we'll lose the update panel
@@ -75,6 +69,18 @@ xomegaControls.createViewDialog = function (target) {
 
     // use min-width from the view only to set the dialog's initial width
     let width = parseInt(view.attr('data-width'), 10);
+
+    target.on('dialogbeforeclose', function (evt) {
+        var closeButton = target.find('.btn-close');
+        // if closing by hitting Esc or clicking the X button
+        if (evt.originalEvent && closeButton.length > 0) {
+            // then redirect to closing via view's Close button
+            // to show confirmation and fire a close event
+            closeButton.click();
+            return false;
+        }
+        return true;
+    });
 
     // create the dialog
     let dlg = target.dialog({
@@ -200,13 +206,13 @@ xomegaControls.vSplitViewPanel = function (view) {
 
     var rightPanel = panel.find('> .pane2 > *');
     if (rightPanel.find('.view').length === 0)
-        xomegaControls.vSplitViewVisibilityChange(rightPanel);
+        xomegaControls.vSplitViewVisibilityChange(rightPanel, panel, false);
 }
 
 /**
  * Updates splitter when the child view is shown/hidden.
  */
-xomegaControls.vSplitViewVisibilityChange = function (view, splitPanel) {
+xomegaControls.vSplitViewVisibilityChange = function (view, splitPanel, visibility) {
     var container = $(view);
     var panel = splitPanel || container.parents('.vsplitter-panel');
     if (panel.length === 0) return;
@@ -214,7 +220,7 @@ xomegaControls.vSplitViewVisibilityChange = function (view, splitPanel) {
     var lButton = panel.find('> .vsplitter .left-pane-button');
     var rButton = panel.find('> .vsplitter .right-pane-button');
     var rPane = panel.children('.pane2');
-    var visible = container.find('.view').length > 0;
+    var visible = visibility != null ? visibility : container.find('.view').length > 0;
 
     if (visible && rPane.is(':hidden')) {
         lButton.removeClass('ui-state-disabled');
@@ -254,11 +260,19 @@ xomegaControls.datePicker = function (element, format) {
     // convert JS format to jqUI date picker format
     let jqFmt = format.replace(/m/g, '0') // reset minutes
                       .replace(/H/g, '0') // reset hours
+                      .replace('yyyy', 'yy')
                       .replace('YYYY', 'yy')
                       .replace('YY', 'y')
                       .replace(/M/g, 'm')
                       .replace(/D/g, 'd');
-    $(element).datepicker({ dateFormat: jqFmt })
+    $(element).datepicker({
+        dateFormat: jqFmt,
+        onSelect: (_dateText, inst) => {
+            // triger native DOM change event for Blazor to work
+            if (inst.input)
+                inst.input[0].dispatchEvent(new Event('change'));
+        }
+    })
 }
 
 xomegaControls._autoComplete = function (settings) {
@@ -310,6 +324,17 @@ xomegaControls.autoComplete = function (element, property, settings) {
     });
 }
 
+xomegaControls.getSelectedValues = function (sel) {
+    var results = [];
+    var i;
+    for (i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].selected) {
+            results[results.length] = sel.options[i].value;
+        }
+    }
+    return results;
+};
+
 /* =============================================================================
  * Functions for SPA controls that work with AMD (like RequreJS)
    =============================================================================*/
@@ -319,12 +344,6 @@ xomegaControls.autoComplete = function (element, property, settings) {
  */
 xomegaControls.modalViewPopup = function (viewmodel, view) {
     let target = $(view);
-
-    // try closing via view's button to fire a close event
-    target.on('dialogbeforeclose', function () {
-        target.find('.btn-close').click();
-        return false; // prevent standard close
-    });
 
     // destroy the dialog on view model close
     viewmodel.onViewEvent(function (view, event) {

@@ -5,11 +5,12 @@
         <version>{version}</version>
         <authors>Xomega Team</authors>
         <owners>Xomega.Net</owners>
-        <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+        <license type="file">LICENSE.md</license>
+        <icon>Logo.png</icon>
         <projectUrl>https://github.com/Xomega-Net/XomegaJS.Controls</projectUrl>
-        <iconUrl>https://avatars2.githubusercontent.com/u/17077373</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Xomega JavaScript controls based on JQuery UI.</description>
+        <copyright>Copyright © Xomega.Net 2017-2020</copyright>
         <tags>Xomega JavaScript</tags>
         <dependencies>
             <dependency id="jQuery.UI.Combined" version="1.12.1" />

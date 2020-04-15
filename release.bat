@@ -29,6 +29,8 @@ IF EXIST "pkg\XomegaJS.Controls.%VER%" rd /q /s "pkg\XomegaJS.Controls.%VER%"
 md "pkg\XomegaJS.Controls.%VER%"
 md "pkg\content\Scripts"
 copy "Scripts\xomega-controls.js" "pkg\content\Scripts\xomega-controls-%VER%.js" >nul
+xcopy "LICENSE.md" "pkg\"
+xcopy "Logo.png" "pkg\"
 
 @powershell (Get-Content -raw PackageJS.nuspec) -replace '{version}', '%VER%' > pkg\Package.nuspec
 
@@ -46,6 +48,8 @@ xcopy /q /s /i "Scripts\typings" "pkg\content\Scripts\typings" >nul
 %NUGET_PATH% pack "pkg\Package.nuspec" -OutputDirectory "pkg\XomegaJS.Controls.Typed.%VER%"
 
 rd /s /q pkg\content
+del pkg\LICENSE.md
+del pkg\Logo.png
 del pkg\Package.nuspec
 
 :end
